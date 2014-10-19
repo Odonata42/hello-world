@@ -1,0 +1,26 @@
+/*display type of block inline
+edit mode function which will do the following
+hide label text - unhide the input box for edit
+change display type of input box from none to block inline
+
+
+item name has display tpye of block inline
+
+button.parent.id
+*/
+
+.customCheckbox {
+	
+}
+.formatTextVisible{
+	display:inline
+}
+.formatTextHide{
+	display:none;
+}
+.editHide{
+	display:none;
+}
+.editVisible{
+	display:inline;
+}

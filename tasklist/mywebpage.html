@@ -1,0 +1,33 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+	<head>
+		<script type="text/javascript" src="javascripts/mywebpagejs.js"></script>
+		<link rel="stylesheet" type="text/css" href="stylesheets/cssStuff.css">
+		<script src="/javascripts/JQuery.js"></script>
+	</head>
+	<body>
+
+
+
+
+		<form name = "myFormName"id = "myForm">
+		<label for="form1">Add Task: </label><input type="text" name="inputbox1" id = "form1">
+		<input type="button" value="Submit" onClick=submitInfo()><br>
+		<div id = "tasks">
+		</div>
+		<div id="clear">
+			<input type="button" value="Clear Done" onClick=clearDone()><br>
+		</div>
+		<div id = "done">
+		</div>
+
+		</form>
+
+	</body>
+</html>
+
+<!--have an array with all tasks in
+when submit add - add to that array
+loop through array adding tickbox item each time-->

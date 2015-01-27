@@ -1,4 +1,6 @@
 //TODO breaks when delete all items from list - localstorage.items = undefined
+//data-id
+
 
 $(function(){
 	getList();
@@ -17,7 +19,7 @@ function submitInfo(){
 	//ajax post
 	sendItem({"task":formContents});
 	document.getElementById("form1").value="";
-	}
+}
 
 function addItem(items){
 	var itemsJSON = JSON.parse(items);
@@ -27,16 +29,14 @@ function addItem(items){
 function loadItems(itemList){
 	$("#tasks").empty();
 	var list = itemList;
+	list.reverse();
 	for (var i=0;i<list.length;i++){
 		generateList(list[i].task,list[i].id);
 	}
 }
 function generateList (divLabel,divID,divValue){
-	this.divLabel = divLabel;
-	this.divID = divID;
-	//this.divValue = divValue;
 	var itemDiv = document.createElement('div');
-	itemDiv.id = "ItemID_" + divID;
+	$(itemDiv).data("todoID", divID);
 	//arrowdown
 	var arrowD = document.createElement("img");
 	arrowD.src = "images/down-arrow.png";
@@ -91,7 +91,7 @@ function clearDone(){
 
 
 	$('input[type=checkbox]:checked').each(function () {
-		var deleteItemID = this.parentNode.id.match(/ItemID_([a-z0-9]+)/)[1];
+		var deleteItemID = $(this.parentNode).data().todoID;
         deleteItem(deleteItemID);
         var labelName = $(this).next()[0].innerHTML;
         doneText += labelName + "\n";
@@ -102,52 +102,54 @@ function clearDone(){
 }
 
 
-function moveup(){
-	//doesnt work
-	var currDiv = this.parentNode;
-	var items = getlocal();
-	var currPrior = currDiv.id.match(/[0-9]+/)[0];
-
-	items[currPrior].priority = currPrior - 1;
-	items[currPrior-1].priority = parseInt(currPrior);
-	items.sort(function(a,b){return a.priority- b.priority});
-	updateLocal(items);
-	loadItems();
-	//need to update priority on reference div also
+function moveup(evt){
+	console.log(evt.target);
+	var thisItem = evt.target.parentElement;
+	var index = $(thisItem).index();
+	if(index !==0){
+		var newPrior = index-1;
+		var ID = $(thisItem).data().todoID;
+		updatePrior(ID,newPrior);
+		getList();
+	}
 }
 
-function movedown(){
-	//doesnt work
-	var currDiv = this.parentNode;
-	var items = getlocal();
-	var currPrior = parseInt(currDiv.id.match(/[0-9]+/)[0]);
-	items[currPrior].priority = currPrior + 1;
-	items[currPrior+1].priority = parseInt(currPrior);
-	items.sort(function(a,b){return a.priority- b.priority});
-	updateLocal(items);
-	loadItems();
-
+function movedown(evt){
+	console.log(evt.target);
+	var thisItem = evt.target.parentElement;
+	var index = $(thisItem).index();
+	var totalItemNo = $(thisItem.parentElement).children().length;
+	if(index !== totalItemNo-1){
+		var newPrior = index+1;
+		var ID = $(thisItem).data().todoID;
+		updatePrior(ID,newPrior);
+		getList();
+	}
 }
 		
 function edit(btn){
-	//OK no refactoring needed
-	//this.parent.id
-	var currID=this.parentNode.id;
+
 	var currDiv = this.parentNode;
-	var text = $("#"+currID +">.formatTextVisible").text();
-	$("#"+currID +">.editHide").val(text);
-	$("#"+currID +">.editHide").show()
-	$("#"+currID +">.formatTextVisible").hide()
+	var text = this.innerHTML;
+	var editHide = $($(this.parentNode).find(".editHide")[0]);
+	var formatTextVisible = $($(this.parentNode).find(".formatTextVisible")[0]);
+	editHide.val(text);
+	editHide.show();
+	formatTextVisible.hide();
+	editHide.focus();
 
-	$("#"+currID +">.editHide").focus();
-	$("#"+currID +">.editHide").focusout(function(){
-	var inputText = this.value;
-	$("#"+currID +">.formatTextVisible").text(inputText); 
-	$("#"+currID +">.formatTextVisible").show();
-	$("#"+currID +">.editHide").hide();
-
+	editHide.focusout(function(){
+		var inputText = this.value;
+		var itemID = $(this.parentNode).data().todoID;
+		formatTextVisible.text(inputText); 
+		formatTextVisible.show();
+		editHide.hide();
+		updateItem = {
+			id: itemID,
+			task: inputText
+		};
+		update(updateItem);
 	})
-	//need update request on server - ask Mark?
 
 }
 
@@ -160,8 +162,39 @@ function sendItem(todoItem){
 	  contentType:"application/json; charset=utf-8",
 	  complete: function(result){
 	  	addItem(result.responseText);
-	  	}, 
+	  	},
+	  		statusCode: {
+    		401: function() {
+      			document.location.href = '/login.html';
+    		}
+  		} 
 	});
+}
+
+function update(todoItem){
+	$.ajax({
+	  type:"PUT",
+	  url: "http://localhost:3000/todo/"+ todoItem.id,
+	  data: JSON.stringify(todoItem),
+	  contentType:"application/json; charset=utf-8",
+	  		statusCode: {
+    		401: function() {
+      			document.location.href = '/login.html';
+    		}
+  		}
+	});
+}
+
+function updatePrior(id, priority){
+	$.ajax({
+		type:"PUT",
+		url: "http://localhost:3000/todos/priority?id=" + id + "&priority=" + priority,
+				statusCode: {
+    		401: function() {
+      			document.location.href = '/login.html';
+    		}
+  		}
+	})
 }
 
 function deleteItem(deleteItemID){
@@ -172,8 +205,14 @@ function deleteItem(deleteItemID){
 		//complete:function(result){
 		//	clearDone(result.responseText);
 		//},
+		statusCode: {
+    		401: function() {
+      			document.location.href = '/login.html';
+    		}
+  		}
 	})
 }
+
 
 function getList(){
 	$.ajax({
@@ -182,7 +221,12 @@ function getList(){
 		contentType:"application/json; charset=utf-8",
 		complete: function(result){
 		loadItems(JSON.parse(result.responseText));
-		}, 
-	  //dataType: "string"
+		},
+		statusCode: {
+    		401: function() {
+      			document.location.href = '/login.html';
+    		}
+  		} 
+		//cookie?
 	});
 }

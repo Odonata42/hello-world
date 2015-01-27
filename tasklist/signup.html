@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <script type="text/javascript" src="jquery-1.11.1.min.js"></script>
+  <meta charset="UTF-8">
+
+  <title>CodePen - Login</title>
+
+    <link rel="stylesheet" href="stylesheets/loginStyle.css" media="screen" type="text/css" />
+
+</head>
+
+<body>
+
+  <html lang="en-US">
+  <head>
+
+    <meta charset="utf-8">
+
+    <title>Login</title>
+
+    <link rel="stylesheet" href="http://fonts.googleapis.com/css?family=Open+Sans:400,700">
+
+    <!--[if lt IE 9]>
+  <script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+ <![endif]-->
+
+  </head>
+
+  <body>
+
+    <div class="container">
+
+      <div id="login">
+
+        <form action="newuser" id ="newuserform">
+
+          <fieldset class="clearfix">
+
+            <p><span class="fontawesome-user"></span><input name = "username" type="text" placeholder="username" required></p> <!-- JS because of IE support; better: placeholder="Username" -->
+            <p><span class="fontawesome-lock"></span><input name = "password1" type="password" placeholder = "password" required></p> <!-- JS because of IE support; better: placeholder="Password" -->
+            <p><span class="fontawesome-lock"></span><input name = "password2" type="password" placeholder = "password" required></p> <!-- JS because of IE support; better: placeholder="Password" -->
+            <p><input type="submit" value="Submit"></p>
+
+          </fieldset>
+
+          <script>
+          var form = document.getElementById("newuserform");
+          form.onsubmit = function(evt){
+              evt.preventDefault();
+              var username = form.elements.username.value;
+              var password1 = form.elements.password1.value;
+              var password2 = form.elements.password2.value;
+              console.log(username,password1,password2);
+              if(password1 !== password2){
+                return;
+              }
+              var password = password1;
+              if(!username || !password){
+                  return;
+              }
+              var credentials = {
+                username: username,
+                password: password
+              }
+
+              $.ajax({
+                type:"POST",
+                url: "http://localhost:3000/newuser",
+                data: JSON.stringify(credentials),
+                contentType:"application/json; charset=utf-8",
+                statusCode: {
+                    204: function() {
+                        document.location.href = '/';
+                    }
+                }
+              });
+          };
+
+
+          </script>
+
+        </form>
+
+        <p>Not a member? <a href="#">Sign up now</a><span class="fontawesome-arrow-right"></span></p>
+
+      </div> <!-- end login -->
+
+    </div>
+
+  </body>
+</html>
+
+</body>
+
+</html>

@@ -15,6 +15,8 @@ var storeTodo = require('./lib/middleware/storeTodo');
 var removeTodo = require('./lib/middleware/removeTodo');
 var checkToken = require('./lib/middleware/checkToken');
 var hashCompare = require('./lib/middleware/hashCompare');
+var register = require('./lib/middleware/register');
+var login = require('./lib/middleware/login');
 
 app.use(function(req, res, next) {
     'use strict';
@@ -29,53 +31,14 @@ app.use(bodyParser.json()); // telling to use middleware
 
 router.use(checkToken);
 
-function registerMiddleware(req, res, next){
-    'use strict';
-    console.log(req.body);
-
-    db.hget('UserHashes', req.body.username, function(err, hash){
-        if(err){
-            return res.status(500).end();
-        }
-        if(hash){
-            console.log('username taken, please choose another');
-            return res.status(403).send('<script>alert("username taken"); window.document.location= document.referrer</script>').end();
-        }
-        console.log('username OK, please continue');
-        //db.HSET("UserHashes",req.body.username,"test");
-        //generate bcrypt hash for password
-        //NEW NEW! needs work!!!
-        bcrypt.hash(req.body.password, 8, function(err, hash){
-            if(err){
-                console.log(err);
-                return res.status(500).end();
-            }
-            db.hset('UserHashes', req.body.username, hash, function(err){
-                if(err){
-                    return res.status(500).end();
-                }
-                return next();
-            });
-        });
-
-    });
-
-}
 
 
 
-function loginMiddleware(req, res){
-    'use strict';
-    console.log(req.body);
-    if(!req.body.username || !req.body.password){
-        return res.status(400).end();
-    }
-    hashCompare(req, res);
 
-}
-app.post('/newuser', registerMiddleware, loginMiddleware);
 
-app.post('/login', loginMiddleware);
+app.post('/newuser', register, login);
+
+app.post('/login', login);
 
 
 
@@ -85,7 +48,7 @@ router.post('/todo', function(req, res){
     var todo = req.body;
     console.log('step 2 ' + JSON.stringify(req.body));
 
-//getting list of current IDs to get length for priority
+    //getting list of current IDs to get length for priority
     getID(function(err, id){
         console.log('getID step1');
         if(err){
@@ -170,7 +133,7 @@ router.put('/todos/priority', function(req, res){
 
 });
 
-db.once('scripts-loaded', function() {
+db.on('open', function() {
     'use strict';
     var server = app.listen(3000, function() {
         console.log('Listening on port %d', server.address().port);

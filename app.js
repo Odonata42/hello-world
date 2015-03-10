@@ -10,11 +10,10 @@ var router = new express.Router();
 
 var todos = require('./lib/middleware/todos');
 var db = require('./lib/db');
-var getID = require('./lib/middleware/getID');
 var storeTodo = require('./lib/middleware/storeTodo');
 var removeTodo = require('./lib/middleware/removeTodo');
 var checkToken = require('./lib/middleware/checkToken');
-var hashCompare = require('./lib/middleware/hashCompare');
+var updateTodo = require('./lib/middleware/updateTodo');
 var register = require('./lib/middleware/register');
 var login = require('./lib/middleware/login');
 
@@ -48,26 +47,17 @@ router.post('/todo', function(req, res){
     var todo = req.body;
     console.log('step 2 ' + JSON.stringify(req.body));
 
-    //getting list of current IDs to get length for priority
-    getID(function(err, id){
-        console.log('getID step1');
+
+    storeTodo(todo, req.userId, function(err){
         if(err){
             console.log('error 4: ' + err.stack);
             return res.status(500).end();
         }
-        todo.id = id;
-        //need current IDS length to determine priority
-        //todo.priority = currentIDs.length;
-        storeTodo(todo, function(err){
-            if(err){
-                console.log('error 4: ' + err.stack);
-                return res.status(500).end();
-            }
 
-            res.send(todo);
-        });
+        res.send(todo);
     });
 });
+
 
 
 router.get('/todos', todos);
@@ -79,7 +69,7 @@ router.get('/todos', todos);
 router.delete('/todo/:id', function(req, res){
     'use strict';
     var id = req.params.id;
-    removeTodo(id, function(err){
+    removeTodo(id, req.userId, function(err){
         if(err){
             console.log(err.stack);
             return res.status(500).end();
@@ -88,22 +78,7 @@ router.delete('/todo/:id', function(req, res){
     });
 });
 
-router.put('/todo/:id', function(req, res){
-    'use strict';
-    var id = req.params.id;
-    console.log(id);
-    var key = 'todo:' + id;
-    console.log(JSON.stringify(req.body));
-    console.log('hash/key is: ' + key + 'object is: ' + JSON.stringify(req.body));
-
-    db.hmset(key, req.body, function(err){
-        if(err){
-            console.log(err.stack);
-            return res.status(500).end();
-        }
-        return res.send('ok');
-    });
-});
+router.put('/todo/:id', updateTodo);
 
 router.put('/todos/priority', function(req, res){
     'use strict';

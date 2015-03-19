@@ -15,7 +15,7 @@ var removeTodo = require('./lib/middleware/removeTodo');
 var checkToken = require('./lib/middleware/checkToken');
 var updateTodo = require('./lib/middleware/updateTodo');
 var register = require('./lib/middleware/register');
-var login = require('./lib/middleware/login');
+var loginArr = require('./lib/middleware/login');
 
 app.use(function(req, res, next) {
     'use strict';
@@ -35,9 +35,9 @@ router.use(checkToken);
 
 
 
-app.post('/newuser', register, login);
+app.post('/newuser', register, loginArr);
 
-app.post('/login', login);
+app.post('/login', loginArr);
 
 
 
